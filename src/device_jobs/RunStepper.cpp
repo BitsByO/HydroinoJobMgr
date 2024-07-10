@@ -24,14 +24,9 @@
 RunStepper::RunStepper (int stepPin, int dirPin, int encoderPin, int sleepPin, int resetPin){
   // Set default values
    _stopJob = false;
-   _speed = StepperSpeedEnum::Unknown;
    _sleepPin    = sleepPin;
    _resetPin    = resetPin;
    _encoderPin  = encoderPin;
-   _detentPreviousState = 0;
-   _detentStateRepeatCount  = 0;
-   _detentStateChangeCount  = 0;
-   _stallCount          = 0;
 
    _stepper = new AccelStepper (AccelStepper::DRIVER, stepPin, dirPin);
    _stepper->setMaxSpeed (MAX_SPEED);
@@ -66,18 +61,19 @@ RunStepper::~RunStepper() {
 */
 // Param 1 used to indicate target distance for stepper to move
 void RunStepper::SetParam1(long param) {
-    _stepper->move (param);
+ _stepper->move (param);  
 }
 
 // Param 2 used to indicate stepper speed
-void RunStepper::SetParam2(long param) {
+// NOT CURRENTLY USED
+/*void RunStepper::SetParam2(long param) {
     if (param < 0)
         param = 0;
     else if (param > MAX_SPEED)
         param = MAX_SPEED;
 
     _stepper->setMaxSpeed(param);
-}
+}*/
 
 /*
 * Methods
@@ -87,11 +83,15 @@ void RunStepper::Start() {
 }
 
 void RunStepper::Update() {
-     _stopJob = !(_stepper->run());
+  _stopJob = !(_stepper->run());
 
-    if (_stopJob) {
-        _status = JobStatusEnum::Complete;
-    } 
+  //#ifdef DEBUG
+ // Serial.println("Move stepper");
+  //#endif
+
+  if (_stopJob) {
+      _status = JobStatusEnum::Complete;
+  } 
 }
 
 void RunStepper::Stop (ResponseData *responseData) {   

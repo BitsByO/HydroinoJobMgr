@@ -75,6 +75,18 @@ void HydroinoJobMgr::InitializeNewJob (byte *receivedData, int queueIndex, JobTy
     std::shared_ptr<RunDevice> runDevice(new RunDevice(devicePin, startValue.longVal));   
     _jobQueue.push_back(runDevice);
     
+  }  
+  else if (jobType == JobTypeEnum::RunDeviceSimple) {
+    byteArrayAsLong startValue;
+
+    startValue.byteArray[0] = receivedData[6];
+    startValue.byteArray[1] = receivedData[7];
+    startValue.byteArray[2] = receivedData[8];
+    startValue.byteArray[3] = receivedData[9];
+
+    std::shared_ptr<RunDeviceSimple> runDeviceSimple(new RunDeviceSimple(devicePin, startValue.longVal));   
+    _jobQueue.push_back(runDeviceSimple);
+    
   }
   // Fan
   else if (jobType == JobTypeEnum::RunFan) {   
@@ -217,6 +229,14 @@ void HydroinoJobMgr::SetJobParams (byte *receivedData, int queueIndex, JobTypeEn
       param2.byteArray[3] = receivedData[17];   
     break;
 
+    case JobTypeEnum::RunDeviceSimple:
+      // Start / stop flag
+      param1.byteArray[0] = receivedData[10];
+      param1.byteArray[1] = receivedData[11];
+      param1.byteArray[2] = receivedData[12];
+      param1.byteArray[3] = receivedData[13]; 
+    break;
+
     case JobTypeEnum::RunStepper:
       // Distance
       param1.byteArray[0] = receivedData[14];
@@ -224,11 +244,11 @@ void HydroinoJobMgr::SetJobParams (byte *receivedData, int queueIndex, JobTypeEn
       param1.byteArray[2] = receivedData[16];
       param1.byteArray[3] = receivedData[17];  
 
-      // Speed    
+    /*  // Speed    
       param2.byteArray[0] = receivedData[18];
       param2.byteArray[1] = receivedData[19];
       param2.byteArray[2] = receivedData[20];
-      param2.byteArray[3] = receivedData[21];
+      param2.byteArray[3] = receivedData[21];*/
     break; 
 
     case JobTypeEnum::RunServo:
@@ -294,7 +314,10 @@ void HydroinoJobMgr::ProcessJobQueue() {
       newJobStatus = JobStatusEnum::Running;
 
       // Debug print 
-      //Serial.print("Queued job at index: "); Serial.println(i);
+      #ifdef DEBUG
+        Serial.print("Queued job at index: "); Serial.println(i);
+      #endif
+      
 
       // Check if there is a precondition job
       if (_jobQueue[i]->GetPrecedingJobIndex() >= 0)
@@ -321,8 +344,10 @@ void HydroinoJobMgr::ProcessJobQueue() {
       break;
 
     // Running jobs
-    case JobStatusEnum::Running:
-      // Serial.print("Job is running at index: "); Serial.println(i);
+    case JobStatusEnum::Running:    
+      #ifdef DEBUG
+        Serial.print("Job is running at index: "); Serial.println(i);
+      #endif
 
       // Update the current job
       _jobQueue[i]->Update();
@@ -364,9 +389,12 @@ int HydroinoJobMgr::EnqueueJob (byte *receivedData) {
 
   // Get the job type
   jobType =  (JobTypeEnum)receivedData[0];
-  Serial.print("jobType is ");
-  Serial.println((int)jobType);
-
+  
+ // #ifdef DEBUG
+    Serial.print("jobType is ");
+    Serial.println((int)jobType);
+ // #endif
+  
   // Get device ID (aka pin #)- first 4 bites
   devicePin.byteArray[0] = receivedData[2];
   devicePin.byteArray[1] = receivedData[3];
@@ -394,6 +422,8 @@ int HydroinoJobMgr::EnqueueJob (byte *receivedData) {
 // Remove job from queue at specific index
 void HydroinoJobMgr::DequeueJobAtIndex (int queueIndex){  
   _jobQueue.remove(queueIndex);
-  
-  Serial.print("Dequeued job at index ");  Serial.println(queueIndex);
+
+  #ifdef DEBUG
+    Serial.print("Dequeued job at index ");  Serial.println(queueIndex);
+  #endif
 }

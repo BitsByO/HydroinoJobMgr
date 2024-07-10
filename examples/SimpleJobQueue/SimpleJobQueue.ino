@@ -39,6 +39,7 @@ void setup() {
   Wire.onReceive(I2CReceived);
   Wire.onRequest(I2CResponse);
   Serial.begin(9600);
+  Serial.println ("Boot up");
   
   // Initialize response data
   _response->jobType = JobTypeEnum::None;

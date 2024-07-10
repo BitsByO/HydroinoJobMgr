@@ -13,6 +13,7 @@
 #include "device_jobs/RunServo.h"
 #include "device_jobs/RunStepper.h"
 #include "device_jobs/RunDevice.h"
+#include "device_jobs/RunDeviceSimple.h"
 
 #include "sensor_jobs/ReadAirHumidity.h"
 #include "sensor_jobs/ReadAirTemp.h"
